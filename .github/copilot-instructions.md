@@ -1,0 +1,59 @@
+# HslBikeDataAggregator — Copilot Instructions
+
+## System Overview
+
+Helsinki city bike data backend. Part of a two-repo system:
+
+| Repo | Role | Tech | Hosting |
+|---|---|---|---|
+| **HslBikeApp** | Blazor WASM frontend | .NET 10, Blazor WebAssembly, Leaflet.js | GitHub Pages |
+| **HslBikeDataAggregator** (this repo) | C# backend service | .NET 10, Azure Functions (isolated worker) | Azure Functions (Consumption) |
+
+## Architecture
+
+This service is the **only component** that holds the HSL Digitransit API key.
+The Blazor frontend calls this service's REST API — it never calls HSL directly.
+
+### Functions
+
+| Function | Trigger | Purpose |
+|---|---|---|
+| `PollStations` | Timer (every 2-5 min) | Fetch live bike data from Digitransit, store snapshot |
+| `GetStations` | HTTP GET | Return latest station availability |
+| `GetStationAvailability` | HTTP GET | Return aggregated hourly availability profile for a station |
+| `GetStationDestinations` | HTTP GET | Return popular destinations from HSL open history data |
+| `GetSnapshots` | HTTP GET | Return recent snapshots for trend calculation |
+
+### Storage
+
+- Azure Blob Storage for aggregated data (snapshots, hourly profiles, destination data).
+- Data format: JSON blobs, one per station for availability profiles.
+
+## API Contract
+
+- `GET /api/stations` — current bike availability for all stations
+- `GET /api/stations/{id}/availability` — aggregated hourly availability (24 buckets)
+- `GET /api/stations/{id}/destinations` — top destinations by trip count
+- `GET /api/snapshots` — last N snapshots for trend arrows
+
+All endpoints return JSON. CORS enabled for `https://kuoste.github.io`.
+
+## Secrets
+
+- `DigitransitSubscriptionKey` — stored in Azure Functions app settings, NEVER exposed to frontend.
+- `AzureWebJobsStorage` — connection string for blob storage.
+
+## Key Models (compatible with HslBikeApp)
+
+- `BikeStation` — id, name, lat/lon, capacity, bikesAvailable, spacesAvailable, isActive
+- `StationSnapshot` — timestamp + dictionary of stationId -> bikeCount
+- `StationHistory` — departure/arrival station pair, tripCount, avg duration/distance
+- `HourlyAvailability` — hour (0-23) + average bike count for a station
+
+## Conventions
+
+- Azure Functions isolated worker model (.NET 10).
+- Records for data models, classes for services.
+- File-scoped namespaces, nullable enabled, implicit usings.
+- Return empty collections on failure, never null.
+- Use `ReadFromJsonAsync<T>()` / `System.Text.Json` for serialization.
