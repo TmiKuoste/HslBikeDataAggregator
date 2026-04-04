@@ -11,17 +11,23 @@ public sealed class BikeDataBlobStorage(BlobContainerClient blobContainerClient)
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
+    public Task<IReadOnlyList<BikeStation>> GetLatestStationsAsync(CancellationToken cancellationToken)
+        => ReadBlobAsync<BikeStation>(BikeDataBlobNames.LatestStations, cancellationToken);
+
     public async Task<IReadOnlyList<StationSnapshot>> GetRecentSnapshotsAsync(CancellationToken cancellationToken)
+        => await ReadBlobAsync<StationSnapshot>(BikeDataBlobNames.RecentSnapshots, cancellationToken);
+
+    private async Task<IReadOnlyList<T>> ReadBlobAsync<T>(string blobName, CancellationToken cancellationToken)
     {
         await blobContainerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
 
         try
         {
             var response = await blobContainerClient
-                .GetBlobClient(BikeDataBlobNames.RecentSnapshots)
+                .GetBlobClient(blobName)
                 .DownloadContentAsync(cancellationToken);
 
-            return response.Value.Content.ToObjectFromJson<List<StationSnapshot>>(SerializerOptions) ?? [];
+            return response.Value.Content.ToObjectFromJson<List<T>>(SerializerOptions) ?? [];
         }
         catch (RequestFailedException exception) when (exception.Status == 404)
         {

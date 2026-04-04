@@ -1,4 +1,8 @@
+using HslBikeDataAggregator.Models;
 using HslBikeDataAggregator.Services;
+using HslBikeDataAggregator.Storage;
+
+using Moq;
 
 namespace HslBikeDataAggregator.Tests.Services;
 
@@ -7,9 +11,42 @@ public sealed class AggregatedBikeDataServiceTests
     private static readonly CancellationToken CancellationToken = CancellationToken.None;
 
     [Fact]
-    public async Task GetStationsAsync_ReturnsEmptyCollection()
+    public async Task GetStationsAsync_ReturnsStationsFromBlobStorage()
     {
-        var service = new AggregatedBikeDataService();
+        var blobStorage = new Mock<IBikeDataBlobStorage>();
+        blobStorage
+            .Setup(storage => storage.GetLatestStationsAsync(CancellationToken))
+            .ReturnsAsync([
+                new BikeStation
+                {
+                    Id = "station-001",
+                    Name = "Central Station",
+                    Lat = 60.1708,
+                    Lon = 24.941,
+                    Capacity = 24,
+                    BikesAvailable = 8,
+                    SpacesAvailable = 16,
+                    IsActive = true
+                }
+            ]);
+
+        var service = new AggregatedBikeDataService(blobStorage.Object);
+
+        var result = await service.GetStationsAsync(CancellationToken);
+
+        var station = Assert.Single(result);
+        Assert.Equal("station-001", station.Id);
+    }
+
+    [Fact]
+    public async Task GetStationsAsync_ReturnsEmptyCollectionWhenBlobStorageHasNoStations()
+    {
+        var blobStorage = new Mock<IBikeDataBlobStorage>();
+        blobStorage
+            .Setup(storage => storage.GetLatestStationsAsync(CancellationToken))
+            .ReturnsAsync([]);
+
+        var service = new AggregatedBikeDataService(blobStorage.Object);
 
         var result = await service.GetStationsAsync(CancellationToken);
 
@@ -19,7 +56,7 @@ public sealed class AggregatedBikeDataServiceTests
     [Fact]
     public async Task GetSnapshotsAsync_ReturnsEmptyCollection()
     {
-        var service = new AggregatedBikeDataService();
+        var service = new AggregatedBikeDataService(Mock.Of<IBikeDataBlobStorage>());
 
         var result = await service.GetSnapshotsAsync(CancellationToken);
 
@@ -29,7 +66,7 @@ public sealed class AggregatedBikeDataServiceTests
     [Fact]
     public async Task GetAvailabilityAsync_ReturnsEmptyCollection()
     {
-        var service = new AggregatedBikeDataService();
+        var service = new AggregatedBikeDataService(Mock.Of<IBikeDataBlobStorage>());
 
         var result = await service.GetAvailabilityAsync("station-001", CancellationToken);
 
@@ -39,7 +76,7 @@ public sealed class AggregatedBikeDataServiceTests
     [Fact]
     public async Task GetDestinationsAsync_ReturnsEmptyCollection()
     {
-        var service = new AggregatedBikeDataService();
+        var service = new AggregatedBikeDataService(Mock.Of<IBikeDataBlobStorage>());
 
         var result = await service.GetDestinationsAsync("station-001", CancellationToken);
 

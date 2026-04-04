@@ -1,11 +1,13 @@
+using HslBikeDataAggregator.Storage;
+
 using HslBikeDataAggregator.Models;
 
 namespace HslBikeDataAggregator.Services;
 
-public sealed class AggregatedBikeDataService
+public sealed class AggregatedBikeDataService(IBikeDataBlobStorage bikeDataBlobStorage)
 {
     public Task<IReadOnlyList<BikeStation>> GetStationsAsync(CancellationToken cancellationToken)
-        => Task.FromResult<IReadOnlyList<BikeStation>>([]);
+        => bikeDataBlobStorage.GetLatestStationsAsync(cancellationToken);
 
     public Task<IReadOnlyList<StationSnapshot>> GetSnapshotsAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<StationSnapshot>>([]);
