@@ -66,9 +66,9 @@ public sealed class DeploymentWorkflowConfigurationTests
         var prodYaml = await File.ReadAllTextAsync(GetRepositoryFilePath(".github", "workflows", "deploy-prod.yml"), cancellationToken);
 
         Assert.Contains("HistoryProcessingCron", devYaml, StringComparison.Ordinal);
-        Assert.Contains("HistoryProcessing__TripHistoryUrls__0", devYaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("HistoryProcessing__TripHistoryUrls__0", devYaml, StringComparison.Ordinal);
         Assert.Contains("HistoryProcessingCron", prodYaml, StringComparison.Ordinal);
-        Assert.Contains("HistoryProcessing__TripHistoryUrls__0", prodYaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("HistoryProcessing__TripHistoryUrls__0", prodYaml, StringComparison.Ordinal);
     }
 
     [Fact]

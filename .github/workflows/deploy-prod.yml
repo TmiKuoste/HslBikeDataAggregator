@@ -92,11 +92,7 @@ jobs:
             az functionapp config appsettings set \
               --resource-group "$AZURE_RESOURCE_GROUP" \
               --name "$AZURE_FUNCTION_APP_NAME" \
-              --settings \
-              HistoryProcessingCron="${{ vars.HISTORY_PROCESSING_CRON || '0 0 2 * * *' }}" \
-              HistoryProcessing__TripHistoryUrls__0="${{ vars.HISTORY_TRIP_HISTORY_URL_0 || '' }}" \
-              HistoryProcessing__TripHistoryUrls__1="${{ vars.HISTORY_TRIP_HISTORY_URL_1 || '' }}" \
-              HistoryProcessing__TripHistoryUrls__2="${{ vars.HISTORY_TRIP_HISTORY_URL_2 || '' }}"
+              --settings HistoryProcessingCron="${{ vars.HISTORY_PROCESSING_CRON || '0 0 2 * * *' }}"
 
       - name: Deploy Function App package
         uses: Azure/functions-action@v1
