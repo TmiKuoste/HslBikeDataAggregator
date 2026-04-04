@@ -2,7 +2,7 @@
 
 C# Azure Functions backend for Helsinki city bike data aggregation.
 
-This service polls the HSL Digitransit API, stores aggregated bike station data in Azure Blob Storage, and serves read-optimized JSON endpoints for `HslBikeApp`.
+This service polls the HSL Digitransit API, stores aggregated bike station data in Azure Blob Storage, and serves read-optimised JSON endpoints for `HslBikeApp`.
 
 ## Current status
 
@@ -76,9 +76,9 @@ From `src/HslBikeDataAggregator`:
 - Keep code changes linked to an open GitHub issue.
 - Use an issue branch named `issue-<number>-<short-description>`.
 - If an issue was closed before the code was pushed, reopen the issue before continuing.
-- Add or update automated tests for delivered behavior or repository configuration changes.
+- Add or update automated tests for delivered behaviour or repository configuration changes.
 - Run `dotnet build HslBikeDataAggregator.slnx` and the relevant tests before treating the issue as complete.
-- Do not consider an issue done until the code is committed on the issue branch and ready to merge.
+- Do not consider an issue done until the branch is pushed, the pull request is open, and CI is passing.
 
 ## Next milestone
 
