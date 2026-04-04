@@ -1,0 +1,11 @@
+local.settings.json
+
+bin/
+obj/
+.vs/
+.vscode/
+
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
