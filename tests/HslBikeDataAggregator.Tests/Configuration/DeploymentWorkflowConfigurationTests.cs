@@ -22,6 +22,7 @@ public sealed class DeploymentWorkflowConfigurationTests
         var yaml = await File.ReadAllTextAsync(GetRepositoryFilePath(".github", "workflows", "ci.yml"), cancellationToken);
 
         Assert.Contains("validate-infrastructure:", yaml, StringComparison.Ordinal);
+        Assert.Contains("az bicep install", yaml, StringComparison.Ordinal);
     }
 
     [Fact]
