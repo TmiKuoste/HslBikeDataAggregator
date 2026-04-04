@@ -2,6 +2,7 @@ namespace HslBikeDataAggregator.Storage;
 
 public static class BikeDataBlobNames
 {
+    public const string ContainerName = "bike-data";
     public const string LatestStations = "stations/latest.json";
     public const string RecentSnapshots = "snapshots/recent.json";
 
