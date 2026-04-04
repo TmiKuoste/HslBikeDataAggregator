@@ -4,7 +4,9 @@ using System.Security.Claims;
 using Azure.Core.Serialization;
 
 using HslBikeDataAggregator.Functions;
+using HslBikeDataAggregator.Models;
 using HslBikeDataAggregator.Services;
+using HslBikeDataAggregator.Storage;
 
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -47,7 +49,24 @@ public sealed class StationsFunctionsTests
         request.SetupGet(httpRequest => httpRequest.Method).Returns("GET");
         request.SetupGet(httpRequest => httpRequest.Url).Returns(new Uri("https://localhost/api/stations"));
 
-        var function = new StationsFunctions(new AggregatedBikeDataService(), NullLogger<StationsFunctions>.Instance);
+        var blobStorage = new Mock<IBikeDataBlobStorage>();
+        blobStorage
+            .Setup(storage => storage.GetLatestStationsAsync(cancellationToken))
+            .ReturnsAsync([
+                new BikeStation
+                {
+                    Id = "station-001",
+                    Name = "Central Station",
+                    Lat = 60.1708,
+                    Lon = 24.941,
+                    Capacity = 24,
+                    BikesAvailable = 8,
+                    SpacesAvailable = 16,
+                    IsActive = true
+                }
+            ]);
+
+        var function = new StationsFunctions(new AggregatedBikeDataService(blobStorage.Object), NullLogger<StationsFunctions>.Instance);
 
         var responseData = await function.GetStations(request.Object, cancellationToken);
 
@@ -57,6 +76,6 @@ public sealed class StationsFunctionsTests
 
         responseData.Body.Position = 0;
         using var reader = new StreamReader(responseData.Body);
-        Assert.Equal("[]", await reader.ReadToEndAsync(cancellationToken));
+        Assert.Equal("[{\"id\":\"station-001\",\"name\":\"Central Station\",\"lat\":60.1708,\"lon\":24.941,\"capacity\":24,\"bikesAvailable\":8,\"spacesAvailable\":16,\"isActive\":true}]", await reader.ReadToEndAsync(cancellationToken));
     }
 }
