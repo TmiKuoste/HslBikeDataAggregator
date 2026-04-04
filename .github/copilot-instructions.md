@@ -11,8 +11,7 @@ Helsinki city bike data backend. Part of a two-repo system:
 
 ## Architecture
 
-This service is the **only component** that holds the HSL Digitransit API key.
-The Blazor frontend calls this service's REST API — it never calls HSL directly.
+This service is the **only component** that holds the HSL Digitransit API key. The Blazor frontend calls this service's REST API — it never calls HSL directly.
 
 ### Functions
 
@@ -56,13 +55,20 @@ All endpoints return JSON. CORS enabled for `https://kuoste.github.io`.
 - Records for data models, classes for services.
 - File-scoped namespaces, nullable enabled, implicit usings.
 - Return empty collections on failure, never null.
-- Use `ReadFromJsonAsync<T>()` / `System.Text.Json` for serialization.
+- Use `ReadFromJsonAsync<T>()` / `System.Text.Json` for serialisation.
+- Use British English consistently in identifiers, including function, method, variable, parameter, and local naming where practical, while preserving required external API, framework, library, and contract names.
 
 ## Delivery Workflow
 
 - Keep implementation work tied to an open GitHub issue.
 - Use an issue branch named `issue-<number>-<short-description>` for delivery.
 - If an issue was closed before its code was pushed, reopen the issue before continuing work.
-- Add or update automated tests for each delivered behavior or repository-level configuration change.
+- Add or update automated tests for each delivered behaviour or repository-level configuration change.
 - Run `dotnet build HslBikeDataAggregator.slnx` and the relevant tests before considering the issue complete.
-- Do not treat an issue as done until the code is committed on the issue branch and ready to merge.
+- Do not treat an issue as done until the branch is pushed, the pull request is open, and CI is passing.
+
+## Language Preferences
+
+- Use British English consistently in responses, code comments, documentation, commit and pull request text, and GitHub content.
+- Avoid non-English or stray foreign text in responses.
+

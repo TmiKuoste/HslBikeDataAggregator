@@ -35,7 +35,7 @@ Basic station view is never blocked by the aggregator cold start.
 ### Positive
 
 - Users see station data instantly regardless of backend state.
-- HTTP functions are lightweight (blob read only), minimizing cold start impact.
+- HTTP functions are lightweight (blob read only), minimising cold start impact.
 - Data stays fresh within the 2-minute polling interval.
 
 ### Negative
