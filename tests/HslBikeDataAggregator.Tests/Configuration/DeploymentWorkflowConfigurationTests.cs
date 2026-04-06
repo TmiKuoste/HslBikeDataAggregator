@@ -192,8 +192,10 @@ public sealed class DeploymentWorkflowConfigurationTests
         Assert.Contains("defaultToOAuthAuthentication: true", mainBicep, StringComparison.Ordinal);
         Assert.Contains("AzureWebJobsStorage__accountName", mainBicep, StringComparison.Ordinal);
         Assert.DoesNotContain("AzureWebJobsStorage'", mainBicep, StringComparison.Ordinal);
-        Assert.Contains("type: 'SystemAssignedIdentity'", mainBicep, StringComparison.Ordinal);
-        Assert.Contains("type: 'SystemAssigned'", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("type: 'UserAssignedIdentity'", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("type: 'UserAssigned'", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("AzureWebJobsStorage__clientId", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("AzureWebJobsStorage__credential", mainBicep, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -203,7 +205,19 @@ public sealed class DeploymentWorkflowConfigurationTests
         var mainBicep = await File.ReadAllTextAsync(GetRepositoryFilePath("infra", "main.bicep"), cancellationToken);
 
         Assert.Contains("output managedIdentityPrincipalId string", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("output managedIdentityClientId string", mainBicep, StringComparison.Ordinal);
         Assert.DoesNotContain("Microsoft.Authorization/roleAssignments", mainBicep, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Infrastructure_UsesUserAssignedManagedIdentity()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var mainBicep = await File.ReadAllTextAsync(GetRepositoryFilePath("infra", "main.bicep"), cancellationToken);
+
+        Assert.Contains("Microsoft.ManagedIdentity/userAssignedIdentities", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("userAssignedIdentities:", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("userAssignedIdentityResourceId:", mainBicep, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -216,6 +230,7 @@ public sealed class DeploymentWorkflowConfigurationTests
         Assert.Contains("Storage Queue Data Contributor", readme, StringComparison.Ordinal);
         Assert.Contains("az role assignment create", readme, StringComparison.Ordinal);
         Assert.Contains("managedIdentityPrincipalId", readme, StringComparison.Ordinal);
+        Assert.Contains("user-assigned managed identity", readme, StringComparison.Ordinal);
     }
 
     [Fact]

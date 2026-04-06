@@ -29,12 +29,23 @@ param snapshotHistoryLimit int = 60
 @description('Cron expression used by the ProcessStationHistory timer trigger.')
 param historyProcessingCron string = '0 0 2 * * *'
 
+var managedIdentityName = '${functionAppName}-id'
 var appServicePlanName = '${functionAppName}-plan'
 var applicationInsightsName = '${functionAppName}-appi'
 var logAnalyticsWorkspaceName = '${functionAppName}-law'
 var storageAccountName = take('st${toLower(replace(replace(functionAppName, '-', ''), '_', ''))}${uniqueString(resourceGroup().id)}', 24)
 var deploymentStorageContainerName = 'deployment-packages'
 var deploymentStorageContainerUrl = 'https://${storageAccount.name}.blob.${environment().suffixes.storage}/${deploymentStorageContainerName}'
+
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: managedIdentityName
+  location: location
+  tags: {
+    'azd-env-name': environmentName
+    environment: environmentName
+    project: 'HslBikeDataAggregator'
+  }
+}
 
 resource storageAccount
   name: storageAccountName
@@ -127,7 +138,10 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
   location: location
   kind: 'functionapp,linux'
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentity.id}': {}
+    }
   }
   properties: {
     serverFarmId: appServicePlan.id
@@ -139,7 +153,8 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
           type: 'blobContainer'
           value: deploymentStorageContainerUrl
           authentication: {
-            type: 'SystemAssignedIdentity'
+            type: 'UserAssignedIdentity'
+            userAssignedIdentityResourceId: managedIdentity.id
           }
         }
       }
@@ -162,6 +177,14 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
         {
           name: 'AzureWebJobsStorage__accountName'
           value: storageAccount.name
+        }
+        {
+          name: 'AzureWebJobsStorage__clientId'
+          value: managedIdentity.properties.clientId
+        }
+        {
+          name: 'AzureWebJobsStorage__credential'
+          value: 'managedidentity'
         }
         {
           name: 'PollIntervalCron'
@@ -226,4 +249,5 @@ output functionHostname string = 'https://${functionApp.properties.defaultHostNa
 output storageAccountName string = storageAccount.name
 output applicationInsightsName string = applicationInsights.name
 output logAnalyticsWorkspaceName string = logAnalyticsWorkspace.name
-output managedIdentityPrincipalId string = functionApp.identity.principalId
+output managedIdentityPrincipalId string = managedIdentity.properties.principalId
+output managedIdentityClientId string = managedIdentity.properties.clientId

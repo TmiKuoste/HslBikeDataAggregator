@@ -137,14 +137,17 @@ Azure infrastructure is defined in `infra/main.bicep` with environment parameter
 The template provisions:
 
 - Azure Functions Flex Consumption plan (FC1, Linux)
-- Azure Function App with system-assigned managed identity
+- User-assigned managed identity (survives Function App deletion)
+- Azure Function App linked to the user-assigned identity
 - Storage account (shared-key access disabled, OAuth-only)
 - Application Insights backed by Log Analytics workspace
 - Storage diagnostic settings
 
 ### Post-deployment: assign storage RBAC roles
 
-The Function App uses a **managed identity** for storage access instead of connection strings. After the first deployment to a new environment (or after recreating the resource group), you must manually assign two RBAC roles to the managed identity.
+The Function App uses a **user-assigned managed identity** for storage access instead of connection strings. Because the identity is a separate Azure resource, it (and its RBAC roles) survive Function App deletion and recreation — you only need to assign roles once per environment unless the resource group itself is removed.
+
+After the first deployment to a new environment (or after recreating the resource group), assign two RBAC roles to the managed identity.
 
 1. Deploy the infrastructure so the Function App and its managed identity are created.
 
@@ -184,7 +187,7 @@ The Function App uses a **managed identity** for storage access instead of conne
 
 4. Re-run the deployment workflow (or restart the Function App) so it picks up the new permissions.
 
-> **Note:** These role assignments are scoped to the storage account and will be deleted if the resource group is removed. Repeat step 3 after recreating the resource group.
+> **Note:** The user-assigned managed identity is a standalone resource within the resource group. Deleting and recreating the Function App does not affect the identity or its role assignments. However, if the entire resource group is removed, repeat step 3 after recreating it.
 
 ### GitHub environments
 
