@@ -5,7 +5,7 @@ namespace HslBikeDataAggregator.Tests.Storage;
 public sealed class BikeDataBlobNamesTests
 {
     [Theory]
-    [InlineData("001", "availability/001.json")]
+    [InlineData("smoove:001", "availability/smoove:001.json")]
     [InlineData("HSL-042", "availability/HSL-042.json")]
     [InlineData("station_99", "availability/station_99.json")]
     public void AvailabilityProfile_ValidStationId_ReturnsSafeBlobName(string stationId, string expected)
@@ -16,7 +16,7 @@ public sealed class BikeDataBlobNamesTests
     }
 
     [Theory]
-    [InlineData("001", "destinations/001.json")]
+    [InlineData("smoove:001", "destinations/smoove:001.json")]
     [InlineData("HSL-042", "destinations/HSL-042.json")]
     [InlineData("station_99", "destinations/station_99.json")]
     public void DestinationProfile_ValidStationId_ReturnsSafeBlobName(string stationId, string expected)

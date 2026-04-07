@@ -33,7 +33,7 @@ public sealed class PollStationsServiceTests
                       "data": {
                         "vehicleRentalStations": [
                           {
-                            "stationId": "001",
+                            "stationId": "smoove:001",
                             "name": "Central Station",
                             "lat": 60.1708,
                             "lon": 24.941,
@@ -117,9 +117,9 @@ public sealed class PollStationsServiceTests
         Assert.Equal(2, writtenSnapshots!.Count);
         Assert.Equal(new DateTimeOffset(2026, 4, 3, 10, 5, 0, TimeSpan.Zero), writtenSnapshots[0].Timestamp);
         Assert.Equal(timestamp, writtenSnapshots[1].Timestamp);
-        Assert.Equal(9, writtenSnapshots[1].BikeCounts["001"]);
+        Assert.Equal(9, writtenSnapshots[1].BikeCounts["smoove:001"]);
 
-        var station001Profile = Assert.IsAssignableFrom<IReadOnlyList<HourlyAvailability>>(writtenAvailabilityProfiles["001"]);
+        var station001Profile = Assert.IsAssignableFrom<IReadOnlyList<HourlyAvailability>>(writtenAvailabilityProfiles["smoove:001"]);
         var station001Availability = Assert.Single(station001Profile);
         Assert.Equal(10, station001Availability.Hour);
         Assert.Equal(9, station001Availability.AverageBikesAvailable);

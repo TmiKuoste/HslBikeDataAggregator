@@ -62,7 +62,7 @@ public sealed class StationsFunctionsTests
                   "data": {
                     "vehicleRentalStations": [
                       {
-                        "stationId": "station-001",
+                        "stationId": "smoove:001",
                         "name": "Central Station",
                         "lat": 60.1708,
                         "lon": 24.941,
@@ -94,7 +94,7 @@ public sealed class StationsFunctionsTests
 
         responseData.Body.Position = 0;
         using var reader = new StreamReader(responseData.Body);
-        Assert.Equal("[{\"id\":\"station-001\",\"name\":\"Central Station\",\"lat\":60.1708,\"lon\":24.941,\"capacity\":24,\"bikesAvailable\":8,\"spacesAvailable\":16,\"isActive\":true}]", await reader.ReadToEndAsync(cancellationToken));
+        Assert.Equal("[{\"id\":\"smoove:001\",\"name\":\"Central Station\",\"lat\":60.1708,\"lon\":24.941,\"capacity\":24,\"bikesAvailable\":8,\"spacesAvailable\":16,\"isActive\":true}]", await reader.ReadToEndAsync(cancellationToken));
     }
 
     [Fact]
@@ -136,8 +136,8 @@ public sealed class StationsFunctionsTests
                     Timestamp = new DateTimeOffset(2026, 4, 4, 9, 45, 0, TimeSpan.Zero),
                     BikeCounts = new Dictionary<string, int>
                     {
-                        ["station-001"] = 8,
-                        ["station-002"] = 3
+                        ["smoove:001"] = 8,
+                        ["smoove:002"] = 3
                     }
                 }
             ]);
@@ -152,7 +152,7 @@ public sealed class StationsFunctionsTests
 
         responseData.Body.Position = 0;
         using var reader = new StreamReader(responseData.Body);
-        Assert.Equal("[{\"timestamp\":\"2026-04-04T09:45:00+00:00\",\"bikeCounts\":{\"station-001\":8,\"station-002\":3}}]", await reader.ReadToEndAsync(cancellationToken));
+        Assert.Equal("[{\"timestamp\":\"2026-04-04T09:45:00+00:00\",\"bikeCounts\":{\"smoove:001\":8,\"smoove:002\":3}}]", await reader.ReadToEndAsync(cancellationToken));
     }
 
     [Fact]
@@ -183,11 +183,11 @@ public sealed class StationsFunctionsTests
         request.SetupGet(httpRequest => httpRequest.Headers).Returns(new HttpHeadersCollection());
         request.SetupGet(httpRequest => httpRequest.Identities).Returns(Array.Empty<ClaimsIdentity>());
         request.SetupGet(httpRequest => httpRequest.Method).Returns("GET");
-        request.SetupGet(httpRequest => httpRequest.Url).Returns(new Uri("https://localhost/api/stations/station-001/availability"));
+        request.SetupGet(httpRequest => httpRequest.Url).Returns(new Uri("https://localhost/api/stations/smoove:001/availability"));
 
         var blobStorage = new Mock<IBikeDataBlobStorage>();
         blobStorage
-            .Setup(storage => storage.GetAvailabilityProfileAsync("station-001", cancellationToken))
+            .Setup(storage => storage.GetAvailabilityProfileAsync("smoove:001", cancellationToken))
             .ReturnsAsync([
                 new HourlyAvailability
                 {
@@ -203,7 +203,7 @@ public sealed class StationsFunctionsTests
 
         var function = new StationsFunctions(CreateBikeDataService(blobStorage), NullLogger<StationsFunctions>.Instance);
 
-        var responseData = await function.GetStationAvailability(request.Object, "station-001", cancellationToken);
+        var responseData = await function.GetStationAvailability(request.Object, "smoove:001", cancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, responseData.StatusCode);
         Assert.True(responseData.Headers.TryGetValues("Cache-Control", out var cacheControl));
@@ -242,16 +242,16 @@ public sealed class StationsFunctionsTests
         request.SetupGet(httpRequest => httpRequest.Headers).Returns(new HttpHeadersCollection());
         request.SetupGet(httpRequest => httpRequest.Identities).Returns(Array.Empty<ClaimsIdentity>());
         request.SetupGet(httpRequest => httpRequest.Method).Returns("GET");
-        request.SetupGet(httpRequest => httpRequest.Url).Returns(new Uri("https://localhost/api/stations/station-001/destinations"));
+        request.SetupGet(httpRequest => httpRequest.Url).Returns(new Uri("https://localhost/api/stations/smoove:001/destinations"));
 
         var blobStorage = new Mock<IBikeDataBlobStorage>();
         blobStorage
-            .Setup(storage => storage.GetStationDestinationsAsync("station-001", cancellationToken))
+            .Setup(storage => storage.GetStationDestinationsAsync("smoove:001", cancellationToken))
             .ReturnsAsync([
                 new StationHistory
                 {
-                    DepartureStationId = "station-001",
-                    ArrivalStationId = "station-002",
+                    DepartureStationId = "smoove:001",
+                    ArrivalStationId = "smoove:002",
                     TripCount = 12,
                     AverageDurationSeconds = 425.5,
                     AverageDistanceMetres = 1_280.2
@@ -260,7 +260,7 @@ public sealed class StationsFunctionsTests
 
         var function = new StationsFunctions(CreateBikeDataService(blobStorage), NullLogger<StationsFunctions>.Instance);
 
-        var responseData = await function.GetStationDestinations(request.Object, "station-001", cancellationToken);
+        var responseData = await function.GetStationDestinations(request.Object, "smoove:001", cancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, responseData.StatusCode);
         Assert.True(responseData.Headers.TryGetValues("Cache-Control", out var cacheControl));
@@ -268,7 +268,7 @@ public sealed class StationsFunctionsTests
 
         responseData.Body.Position = 0;
         using var reader = new StreamReader(responseData.Body);
-        Assert.Equal("[{\"departureStationId\":\"station-001\",\"arrivalStationId\":\"station-002\",\"tripCount\":12,\"averageDurationSeconds\":425.5,\"averageDistanceMetres\":1280.2}]", await reader.ReadToEndAsync(cancellationToken));
+        Assert.Equal("[{\"departureStationId\":\"smoove:001\",\"arrivalStationId\":\"smoove:002\",\"tripCount\":12,\"averageDurationSeconds\":425.5,\"averageDistanceMetres\":1280.2}]", await reader.ReadToEndAsync(cancellationToken));
     }
 
     private const string EmptyStationsResponse = """
