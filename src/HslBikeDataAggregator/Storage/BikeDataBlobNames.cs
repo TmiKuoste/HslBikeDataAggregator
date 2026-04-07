@@ -1,8 +1,6 @@
-using System.Text.RegularExpressions;
-
 namespace HslBikeDataAggregator.Storage;
 
-public static partial class BikeDataBlobNames
+public static class BikeDataBlobNames
 {
     public const string ContainerName = "bike-data";
     public const string RecentSnapshots = "snapshots/recent.json";
@@ -18,21 +16,31 @@ public static partial class BikeDataBlobNames
     public static string DestinationProfile(string stationId) => $"destinations/{SanitiseStationId(stationId)}.json";
 
     /// <summary>
-    /// Validates that a station ID contains only safe characters (alphanumeric, hyphens, underscores, colons)
-    /// to prevent path-traversal attacks in blob name construction.
+    /// Validates that a station ID does not contain path-traversal or control characters.
+    /// Allows printable characters except forward/back slashes to prevent directory traversal.
     /// </summary>
     internal static string SanitiseStationId(string stationId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(stationId);
 
-        if (!SafeStationIdPattern().IsMatch(stationId))
+        // Block path separators to prevent directory traversal
+        if (stationId.Contains('/') || stationId.Contains('\\'))
         {
-            throw new ArgumentException("Station ID contains invalid characters.", nameof(stationId));
+            throw new ArgumentException("Station ID cannot contain path separators.", nameof(stationId));
+        }
+
+        // Block control characters (including null bytes) to prevent injection attacks
+        if (stationId.Any(char.IsControl))
+        {
+            throw new ArgumentException("Station ID cannot contain control characters.", nameof(stationId));
+        }
+
+        // Block parent directory traversal attempts
+        if (stationId.Contains(".."))
+        {
+            throw new ArgumentException("Station ID cannot contain '..'.", nameof(stationId));
         }
 
         return stationId;
     }
-
-    [GeneratedRegex(@"^[\w\-:]+$")]
-    private static partial Regex SafeStationIdPattern();
 }
