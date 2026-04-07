@@ -18,7 +18,7 @@ public static partial class BikeDataBlobNames
     public static string DestinationProfile(string stationId) => $"destinations/{SanitiseStationId(stationId)}.json";
 
     /// <summary>
-    /// Validates that a station ID contains only safe characters (alphanumeric, hyphens, underscores)
+    /// Validates that a station ID contains only safe characters (alphanumeric, hyphens, underscores, colons)
     /// to prevent path-traversal attacks in blob name construction.
     /// </summary>
     internal static string SanitiseStationId(string stationId)
@@ -33,6 +33,6 @@ public static partial class BikeDataBlobNames
         return stationId;
     }
 
-    [GeneratedRegex(@"^[\w\-]+$")]
+    [GeneratedRegex(@"^[\w\-:]+$")]
     private static partial Regex SafeStationIdPattern();
 }

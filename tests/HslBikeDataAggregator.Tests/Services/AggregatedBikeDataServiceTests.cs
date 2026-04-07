@@ -29,7 +29,7 @@ public sealed class AggregatedBikeDataServiceTests
               "data": {
                 "vehicleRentalStations": [
                   {
-                    "stationId": "station-001",
+                    "stationId": "smoove:001",
                     "name": "Central Station",
                     "lat": 60.1708,
                     "lon": 24.941,
@@ -55,7 +55,7 @@ public sealed class AggregatedBikeDataServiceTests
         var result = await service.GetStationsAsync(CancellationToken);
 
         var station = Assert.Single(result);
-        Assert.Equal("station-001", station.Id);
+        Assert.Equal("smoove:001", station.Id);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public sealed class AggregatedBikeDataServiceTests
                     Timestamp = new DateTimeOffset(2026, 4, 4, 9, 45, 0, TimeSpan.Zero),
                     BikeCounts = new Dictionary<string, int>
                     {
-                        ["station-001"] = 8
+                        ["smoove:001"] = 8
                     }
                 }
             ]);
@@ -92,7 +92,7 @@ public sealed class AggregatedBikeDataServiceTests
         var result = await service.GetSnapshotsAsync(CancellationToken);
 
         var snapshot = Assert.Single(result);
-        Assert.Equal(8, snapshot.BikeCounts["station-001"]);
+        Assert.Equal(8, snapshot.BikeCounts["smoove:001"]);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public sealed class AggregatedBikeDataServiceTests
     {
         var blobStorage = new Mock<IBikeDataBlobStorage>();
         blobStorage
-            .Setup(storage => storage.GetAvailabilityProfileAsync("station-001", CancellationToken))
+            .Setup(storage => storage.GetAvailabilityProfileAsync("smoove:001", CancellationToken))
             .ReturnsAsync([
                 new HourlyAvailability
                 {
@@ -126,7 +126,7 @@ public sealed class AggregatedBikeDataServiceTests
 
         var service = CreateService(blobStorage, EmptyStationsResponse);
 
-        var result = await service.GetAvailabilityAsync("station-001", CancellationToken);
+        var result = await service.GetAvailabilityAsync("smoove:001", CancellationToken);
 
         var availability = Assert.Single(result);
         Assert.Equal(10, availability.Hour);
@@ -138,12 +138,12 @@ public sealed class AggregatedBikeDataServiceTests
     {
         var blobStorage = new Mock<IBikeDataBlobStorage>();
         blobStorage
-            .Setup(storage => storage.GetStationDestinationsAsync("station-001", CancellationToken))
+            .Setup(storage => storage.GetStationDestinationsAsync("smoove:001", CancellationToken))
             .ReturnsAsync([
                 new StationHistory
                 {
-                    DepartureStationId = "station-001",
-                    ArrivalStationId = "station-002",
+                    DepartureStationId = "smoove:001",
+                    ArrivalStationId = "smoove:002",
                     TripCount = 12,
                     AverageDurationSeconds = 425.5,
                     AverageDistanceMetres = 1_280.2
@@ -152,10 +152,10 @@ public sealed class AggregatedBikeDataServiceTests
 
         var service = CreateService(blobStorage, EmptyStationsResponse);
 
-        var result = await service.GetDestinationsAsync("station-001", CancellationToken);
+        var result = await service.GetDestinationsAsync("smoove:001", CancellationToken);
 
         var destination = Assert.Single(result);
-        Assert.Equal("station-002", destination.ArrivalStationId);
+        Assert.Equal("smoove:002", destination.ArrivalStationId);
     }
 
     private const string EmptyStationsResponse = """
