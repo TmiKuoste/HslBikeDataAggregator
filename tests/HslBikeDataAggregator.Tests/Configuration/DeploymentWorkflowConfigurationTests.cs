@@ -192,8 +192,10 @@ public sealed class DeploymentWorkflowConfigurationTests
         Assert.Contains("defaultToOAuthAuthentication: true", mainBicep, StringComparison.Ordinal);
         Assert.Contains("AzureWebJobsStorage__accountName", mainBicep, StringComparison.Ordinal);
         Assert.DoesNotContain("AzureWebJobsStorage'", mainBicep, StringComparison.Ordinal);
-        Assert.Contains("type: 'SystemAssignedIdentity'", mainBicep, StringComparison.Ordinal);
-        Assert.Contains("type: 'SystemAssigned'", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("type: 'UserAssignedIdentity'", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("type: 'UserAssigned'", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("AzureWebJobsStorage__clientId", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("AzureWebJobsStorage__credential", mainBicep, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -207,6 +209,20 @@ public sealed class DeploymentWorkflowConfigurationTests
         Assert.Contains("storageBlobDataOwnerRole", mainBicep, StringComparison.Ordinal);
         Assert.Contains("storageQueueDataContributorRole", mainBicep, StringComparison.Ordinal);
         Assert.Contains("principalType: 'ServicePrincipal'", mainBicep, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Infrastructure_ProvisionsApiManagement()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var mainBicep = await File.ReadAllTextAsync(GetRepositoryFilePath("infra", "main.bicep"), cancellationToken);
+
+        Assert.Contains("Microsoft.ApiManagement/service", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("sku:", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("name: 'Consumption'", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("Microsoft.ApiManagement/service/apis", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("Microsoft.ApiManagement/service/apis/policies", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("<rate-limit", mainBicep, StringComparison.Ordinal);
     }
 
     [Fact]

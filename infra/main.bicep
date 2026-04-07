@@ -29,12 +29,30 @@ param snapshotHistoryLimit int = 60
 @description('Cron expression used by the ProcessStationHistory timer trigger.')
 param historyProcessingCron string = '0 0 2 * * *'
 
+@description('Email address of the APIM publisher.')
+param publisherEmail string = 'admin@example.com'
+
+@description('Organization name of the APIM publisher.')
+param publisherName string = 'HslBikeDataAggregator'
+
+var managedIdentityName = '${functionAppName}-id'
 var appServicePlanName = '${functionAppName}-plan'
 var applicationInsightsName = '${functionAppName}-appi'
 var logAnalyticsWorkspaceName = '${functionAppName}-law'
 var storageAccountName = take('st${toLower(replace(replace(functionAppName, '-', ''), '_', ''))}${uniqueString(resourceGroup().id)}', 24)
 var deploymentStorageContainerName = 'deployment-packages'
 var deploymentStorageContainerUrl = 'https://${storageAccount.name}.blob.${environment().suffixes.storage}/${deploymentStorageContainerName}'
+var apimName = '${functionAppName}-apim'
+
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: managedIdentityName
+  location: location
+  tags: {
+    'azd-env-name': environmentName
+    environment: environmentName
+    project: 'HslBikeDataAggregator'
+  }
+}
 
 // Built-in role definition IDs
 var storageBlobDataOwnerRoleId = 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b'
@@ -131,7 +149,10 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
   location: location
   kind: 'functionapp,linux'
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentity.id}': {}
+    }
   }
   properties: {
     serverFarmId: appServicePlan.id
@@ -143,7 +164,8 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
           type: 'blobContainer'
           value: deploymentStorageContainerUrl
           authentication: {
-            type: 'SystemAssignedIdentity'
+            type: 'UserAssignedIdentity'
+            userAssignedIdentityResourceId: managedIdentity.id
           }
         }
       }
@@ -166,6 +188,14 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
         {
           name: 'AzureWebJobsStorage__accountName'
           value: storageAccount.name
+        }
+        {
+          name: 'AzureWebJobsStorage__clientId'
+          value: managedIdentity.properties.clientId
+        }
+        {
+          name: 'AzureWebJobsStorage__credential'
+          value: 'managedidentity'
         }
         {
           name: 'PollIntervalCron'
@@ -198,21 +228,21 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
 
 // Role assignments for Managed Identity storage access
 resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(storageAccount.id, functionApp.id, storageBlobDataOwnerRoleId)
+  name: guid(storageAccount.id, managedIdentity.id, storageBlobDataOwnerRoleId)
   scope: storageAccount
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', storageBlobDataOwnerRoleId)
-    principalId: functionApp.identity.principalId
+    principalId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
 resource storageQueueDataContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(storageAccount.id, functionApp.id, storageQueueDataContributorRoleId)
+  name: guid(storageAccount.id, managedIdentity.id, storageQueueDataContributorRoleId)
   scope: storageAccount
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', storageQueueDataContributorRoleId)
-    principalId: functionApp.identity.principalId
+    principalId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }
@@ -246,9 +276,54 @@ resource storageDiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-0
   }
 }
 
+resource apim 'Microsoft.ApiManagement/service@2023-05-01-preview' = {
+  name: apimName
+  location: location
+  sku: {
+    name: 'Consumption'
+    capacity: 0
+  }
+  properties: {
+    publisherEmail: publisherEmail
+    publisherName: publisherName
+  }
+  tags: {
+    'azd-env-name': environmentName
+    environment: environmentName
+    project: 'HslBikeDataAggregator'
+  }
+}
+
+resource apimApi 'Microsoft.ApiManagement/service/apis@2023-05-01-preview' = {
+  parent: apim
+  name: 'hsl-bike-data-api'
+  properties: {
+    displayName: 'HSL Bike Data API'
+    description: 'API for HSL Bike Data Aggregator'
+    subscriptionRequired: false
+    protocols: [
+      'https'
+    ]
+    path: 'api'
+    serviceUrl: 'https://${functionApp.properties.defaultHostName}/api'
+  }
+}
+
+resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-05-01-preview' = {
+  parent: apimApi
+  name: 'policy'
+  properties: {
+    value: '<policies>\r\n  <inbound>\r\n    <base />\r\n    <rate-limit calls="100" renewal-period="60" />\r\n    <cors allow-credentials="false">\r\n      <allowed-origins>\r\n        <origin>https://kuoste.github.io</origin>\r\n      </allowed-origins>\r\n      <allowed-methods>\r\n        <method>GET</method>\r\n      </allowed-methods>\r\n    </cors>\r\n  </inbound>\r\n  <backend>\r\n    <base />\r\n  </backend>\r\n  <outbound>\r\n    <base />\r\n  </outbound>\r\n  <on-error>\r\n    <base />\r\n  </on-error>\r\n</policies>'
+    format: 'xml'
+  }
+}
+
 output functionAppName string = functionApp.name
 output functionHostname string = 'https://${functionApp.properties.defaultHostName}'
 output storageAccountName string = storageAccount.name
 output applicationInsightsName string = applicationInsights.name
 output logAnalyticsWorkspaceName string = logAnalyticsWorkspace.name
-output managedIdentityPrincipalId string = functionApp.identity.principalId
+output managedIdentityPrincipalId string = managedIdentity.properties.principalId
+output managedIdentityClientId string = managedIdentity.properties.clientId
+output apimName string = apim.name
+output apimGatewayUrl string = apim.properties.gatewayUrl
