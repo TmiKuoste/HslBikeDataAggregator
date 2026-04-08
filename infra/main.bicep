@@ -334,9 +334,10 @@ resource apimApi 'Microsoft.ApiManagement/service/apis@2024-05-01' = {
 }
 
 // Inbound policy applied to all operations: function key injection, CORS,
-// global rate limiting, daily quota, and response caching.
-// Note: Consumption tier only supports basic rate-limit and quota policies
-// (per-IP by-key variants require Developer tier or above).
+// global rate limiting and response caching.
+// Note: Consumption tier only supports the basic rate-limit policy.
+// The quota policy is restricted to product scope and by-key variants
+// require Developer tier or above.
 resource apimApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2024-05-01' = {
   name: 'policy'
   parent: apimApi
@@ -361,7 +362,6 @@ resource apimApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2024-05-01
       </allowed-headers>
     </cors>
     <rate-limit calls="200" renewal-period="60" />
-    <quota calls="10000" renewal-period="86400" />
     <cache-lookup vary-by-developer="false" vary-by-developer-groups="false" />
   </inbound>
   <backend>

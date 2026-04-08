@@ -20,8 +20,7 @@ Place an Azure API Management (APIM) Consumption-tier instance in front of all H
 
 ### Traffic control
 
-- **Global rate limiting** (`rate-limit`): 200 requests per minute across all callers. The Consumption tier does not support per-IP `rate-limit-by-key` — that requires Developer tier or above.
-- **Daily quota** (`quota`): hard cap of 10,000 requests per 24 hours across all callers as a cost ceiling.
+- **Global rate limiting** (`rate-limit`): 200 requests per minute across all callers. The Consumption tier does not support per-IP `rate-limit-by-key` (requires Developer tier or above), and the `quota` policy is restricted to product scope so cannot be applied at the API level.
 - **Response caching** (`cache-lookup` / `cache-store`): 30 seconds for live endpoints (`/stations`, `/snapshots`), 3,600 seconds for slow-changing endpoints (`/availability`, `/destinations`).
 
 ### Function App lock-down

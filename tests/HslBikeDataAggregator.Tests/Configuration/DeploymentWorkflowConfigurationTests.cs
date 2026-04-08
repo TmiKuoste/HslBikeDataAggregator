@@ -314,16 +314,14 @@ public sealed class DeploymentWorkflowConfigurationTests
     }
 
     [Fact]
-    public async Task Infrastructure_ApimConfiguresRateLimitingAndQuota()
+    public async Task Infrastructure_ApimConfiguresRateLimiting()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var mainBicep = await File.ReadAllTextAsync(GetRepositoryFilePath("infra", "main.bicep"), cancellationToken);
 
         Assert.Contains("rate-limit calls=", mainBicep, StringComparison.Ordinal);
-        Assert.Contains("quota calls=", mainBicep, StringComparison.Ordinal);
-        Assert.Contains("10000", mainBicep, StringComparison.Ordinal);
         Assert.DoesNotContain("rate-limit-by-key", mainBicep, StringComparison.Ordinal);
-        Assert.DoesNotContain("quota-by-key", mainBicep, StringComparison.Ordinal);
+        Assert.DoesNotContain("<quota", mainBicep, StringComparison.Ordinal);
     }
 
     [Fact]
