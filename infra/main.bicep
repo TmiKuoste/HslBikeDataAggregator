@@ -304,7 +304,10 @@ resource apimService 'Microsoft.ApiManagement/service@2024-05-01' = {
 }
 
 // Store the auto-generated Function App host key so APIM can authenticate.
-var functionHostKey = functionApp.listKeys().functionKeys.default
+// listKeys must target the host child resource, not the site itself.
+// The API version is derived from the functionApp resource declaration so it
+// stays in sync automatically when the resource API version is updated.
+var functionHostKey = listKeys('${functionApp.id}/host/default', functionApp.apiVersion).functionKeys.default
 
 resource apimFunctionKeyNamedValue 'Microsoft.ApiManagement/service/namedValues@2024-05-01' = {
   name: 'function-host-key'

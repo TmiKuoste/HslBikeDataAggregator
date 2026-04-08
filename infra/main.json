@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.42.1.51946",
-      "templateHash": "2193001495911328739"
+      "templateHash": "4144122950253056878"
     }
   },
   "parameters": {
@@ -371,7 +371,7 @@
       "name": "[format('{0}/{1}', parameters('apimServiceName'), 'function-host-key')]",
       "properties": {
         "displayName": "function-host-key",
-        "value": "[listKeys(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01').functionKeys.default]",
+        "value": "[listKeys(format('{0}/host/default', resourceId('Microsoft.Web/sites', parameters('functionAppName'))), '2024-04-01').functionKeys.default]",
         "secret": true
       },
       "dependsOn": [

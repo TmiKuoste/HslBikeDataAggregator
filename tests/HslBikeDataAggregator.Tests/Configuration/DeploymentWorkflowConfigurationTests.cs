@@ -308,7 +308,7 @@ public sealed class DeploymentWorkflowConfigurationTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var mainBicep = await File.ReadAllTextAsync(GetRepositoryFilePath("infra", "main.bicep"), cancellationToken);
 
-        Assert.Contains("listKeys()", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("listKeys('${functionApp.id}/host/default'", mainBicep, StringComparison.Ordinal);
         Assert.Contains("function-host-key", mainBicep, StringComparison.Ordinal);
         Assert.Contains("x-functions-key", mainBicep, StringComparison.Ordinal);
     }
