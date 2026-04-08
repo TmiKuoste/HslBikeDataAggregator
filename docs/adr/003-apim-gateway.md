@@ -20,8 +20,8 @@ Place an Azure API Management (APIM) Consumption-tier instance in front of all H
 
 ### Traffic control
 
-- **Differentiated rate limiting** (`rate-limit-by-key`): higher limit (120 req/min per IP) for requests with the `https://kuoste.github.io` origin, lower limit (20 req/min per IP) for all others.
-- **Daily quota** (`quota-by-key`): hard cap of 10,000 requests per 24 hours per IP as a cost ceiling.
+- **Global rate limiting** (`rate-limit`): 200 requests per minute across all callers. The Consumption tier does not support per-IP `rate-limit-by-key` — that requires Developer tier or above.
+- **Daily quota** (`quota`): hard cap of 10,000 requests per 24 hours across all callers as a cost ceiling.
 - **Response caching** (`cache-lookup` / `cache-store`): 30 seconds for live endpoints (`/stations`, `/snapshots`), 3,600 seconds for slow-changing endpoints (`/availability`, `/destinations`).
 
 ### Function App lock-down
@@ -51,7 +51,7 @@ Place an Azure API Management (APIM) Consumption-tier instance in front of all H
 ### Positive
 
 - Server-side cost protection — rejected requests never reach the Function App.
-- Legitimate users get a generous rate allowance; casual abusers are throttled.
+- All callers share a global rate limit; casual abusers are throttled without needing a higher-tier APIM SKU.
 - Response caching reduces Function App invocations significantly for repeated requests.
 - Fully automated via Bicep — no manual portal steps or secret management.
 - APIM Consumption tier adds minimal cost (~£3/month).
@@ -60,5 +60,5 @@ Place an Azure API Management (APIM) Consumption-tier instance in front of all H
 
 - Additional infrastructure component to maintain and monitor.
 - APIM Consumption tier has a cold-start delay (~1-2 seconds) on idle periods.
-- `Origin` header used for differentiated rate limiting is spoofable — soft preference only.
+- Rate limiting is global (not per-IP) on Consumption tier — a burst of legitimate traffic can exhaust the shared allowance.
 - Frontend must be updated to call the APIM gateway URL instead of the Function App URL directly.

@@ -334,7 +334,9 @@ resource apimApi 'Microsoft.ApiManagement/service/apis@2024-05-01' = {
 }
 
 // Inbound policy applied to all operations: function key injection, CORS,
-// differentiated rate limiting, daily quota, and response caching.
+// global rate limiting, daily quota, and response caching.
+// Note: Consumption tier only supports basic rate-limit and quota policies
+// (per-IP by-key variants require Developer tier or above).
 resource apimApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2024-05-01' = {
   name: 'policy'
   parent: apimApi
@@ -358,15 +360,8 @@ resource apimApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2024-05-01
         <header>*</header>
       </allowed-headers>
     </cors>
-    <choose>
-      <when condition="@(context.Request.Headers.GetValueOrDefault(&quot;Origin&quot;,&quot;&quot;) == &quot;https://kuoste.github.io&quot;)">
-        <rate-limit-by-key calls="120" renewal-period="60" counter-key="@(context.Request.IpAddress)" />
-      </when>
-      <otherwise>
-        <rate-limit-by-key calls="20" renewal-period="60" counter-key="@(context.Request.IpAddress)" />
-      </otherwise>
-    </choose>
-    <quota-by-key calls="10000" renewal-period="86400" counter-key="@(context.Request.IpAddress)" />
+    <rate-limit calls="200" renewal-period="60" />
+    <quota calls="10000" renewal-period="86400" />
     <cache-lookup vary-by-developer="false" vary-by-developer-groups="false" />
   </inbound>
   <backend>
