@@ -329,8 +329,7 @@ resource apimApi 'Microsoft.ApiManagement/service/apis@2024-05-01' = {
 
 // Build <origin> elements from the corsAllowedOrigins parameter so the APIM
 // CORS policy is the single source of truth for allowed origins.
-var corsOriginXml = join(map(corsAllowedOrigins, origin => '<origin>${origin}</origin>'), '
-        ')
+var corsOriginXml = join(map(corsAllowedOrigins, origin => '<origin>${origin}</origin>'), '')
 
 // Inbound policy applied to all operations: function key injection, CORS,
 // global rate limiting and response caching.
