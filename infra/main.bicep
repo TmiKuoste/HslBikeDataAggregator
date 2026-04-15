@@ -18,10 +18,8 @@ param functionAppName string
 @minLength(2)
 param apimServiceName string
 
-@description('Frontend origins allowed by Azure Functions CORS configuration.')
-param corsAllowedOrigins array = [
-  'https://kuoste.github.io'
-]
+@description('Origins permitted by the APIM CORS policy. Each environment must supply this explicitly.')
+param corsAllowedOrigins array
 
 @description('Cron expression used by the PollStations timer trigger.')
 param pollIntervalCron string = '0 */15 * * * *'
@@ -207,10 +205,6 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
           value: historyProcessingCron
         }
       ]
-      cors: {
-        allowedOrigins: corsAllowedOrigins
-        supportCredentials: false
-      }
       ftpsState: 'Disabled'
       http20Enabled: true
       minTlsVersion: '1.2'
@@ -333,6 +327,11 @@ resource apimApi 'Microsoft.ApiManagement/service/apis@2024-05-01' = {
   }
 }
 
+// Build <origin> elements from the corsAllowedOrigins parameter so the APIM
+// CORS policy is the single source of truth for allowed origins.
+var corsOriginXml = join(map(corsAllowedOrigins, origin => '<origin>${origin}</origin>'), '
+        ')
+
 // Inbound policy applied to all operations: function key injection, CORS,
 // global rate limiting and response caching.
 // Note: Consumption tier only supports the basic rate-limit policy.
@@ -343,7 +342,7 @@ resource apimApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2024-05-01
   parent: apimApi
   properties: {
     format: 'xml'
-    value: '''
+    value: replace('''
 <policies>
   <inbound>
     <base />
@@ -352,8 +351,7 @@ resource apimApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2024-05-01
     </set-header>
     <cors allow-credentials="false">
       <allowed-origins>
-        <origin>https://kuoste.github.io</origin>
-        <origin>https://tmikuoste.github.io</origin>
+        <!--CORS_ORIGINS-->
       </allowed-origins>
       <allowed-methods>
         <method>GET</method>
@@ -376,7 +374,7 @@ resource apimApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2024-05-01
     <base />
   </on-error>
 </policies>
-'''
+''', '<!--CORS_ORIGINS-->', corsOriginXml)
   }
   dependsOn: [
     apimFunctionKeyNamedValue
