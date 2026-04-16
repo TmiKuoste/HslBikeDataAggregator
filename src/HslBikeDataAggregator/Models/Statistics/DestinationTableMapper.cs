@@ -1,6 +1,8 @@
-namespace HslBikeDataAggregator.Models;
+using HslBikeDataAggregator.Models.Shared;
 
-public static class ColumnarTableMapper
+namespace HslBikeDataAggregator.Models.Statistics;
+
+public static class DestinationTableMapper
 {
     private static readonly string[] DestinationFields =
     [

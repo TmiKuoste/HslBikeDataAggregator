@@ -1,5 +1,6 @@
 using HslBikeDataAggregator.Configuration;
 using HslBikeDataAggregator.Models;
+using HslBikeDataAggregator.Models.Snapshots;
 using HslBikeDataAggregator.Storage;
 
 using Microsoft.Extensions.Logging;

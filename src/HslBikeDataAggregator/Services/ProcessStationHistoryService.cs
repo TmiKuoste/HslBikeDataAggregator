@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Net;
 
 using HslBikeDataAggregator.Configuration;
-using HslBikeDataAggregator.Models;
+using HslBikeDataAggregator.Models.Statistics;
 using HslBikeDataAggregator.Storage;
 
 using Microsoft.Extensions.Logging;
@@ -389,7 +389,7 @@ public sealed class ProcessStationHistoryService(
                     WeekdayArrivalsByHour = [.. weekdayArrivalsByHour],
                     WeekendArrivalsByHour = [.. weekendArrivalsByHour]
                 },
-                Destinations = ColumnarTableMapper.ToDestinationTable(
+                Destinations = DestinationTableMapper.ToDestinationTable(
                     destinations
                         .OrderByDescending(static destination => destination.Value.TripCount)
                         .ThenBy(static destination => destination.Key, StringComparer.Ordinal)

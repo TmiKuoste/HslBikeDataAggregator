@@ -51,9 +51,11 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
   }
 }
 
-// Built-in role definition IDs
-var storageBlobDataOwnerRoleId = 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b'
-var storageQueueDataContributorRoleId = '974c5e8b-45b9-4653-ba55-5f855dd0fb88'
+// Role definition IDs used in Azure
+var roleDefinitionIds = {
+  storageBlobDataOwner: 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b'
+  storageQueueDataContributor: '974c5e8b-45b9-4653-ba55-5f855dd0fb88'
+}
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: storageAccountName
@@ -225,20 +227,26 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
 
 // Role assignments for Managed Identity storage access
 resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(storageAccount.id, managedIdentity.id, storageBlobDataOwnerRoleId)
+  name: guid(storageAccount.id, managedIdentity.id, roleDefinitionIds.storageBlobDataOwner)
   scope: storageAccount
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', storageBlobDataOwnerRoleId)
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      roleDefinitionIds.storageBlobDataOwner
+    )
     principalId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
 resource storageQueueDataContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(storageAccount.id, managedIdentity.id, storageQueueDataContributorRoleId)
+  name: guid(storageAccount.id, managedIdentity.id, roleDefinitionIds.storageQueueDataContributor)
   scope: storageAccount
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', storageQueueDataContributorRoleId)
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      roleDefinitionIds.storageQueueDataContributor
+    )
     principalId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }

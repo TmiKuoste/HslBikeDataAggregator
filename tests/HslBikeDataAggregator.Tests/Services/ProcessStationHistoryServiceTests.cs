@@ -3,6 +3,8 @@ using System.Text;
 
 using HslBikeDataAggregator.Configuration;
 using HslBikeDataAggregator.Models;
+using HslBikeDataAggregator.Models.Shared;
+using HslBikeDataAggregator.Models.Statistics;
 using HslBikeDataAggregator.Services;
 using HslBikeDataAggregator.Storage;
 

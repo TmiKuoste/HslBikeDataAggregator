@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace HslBikeDataAggregator.Models;
+namespace HslBikeDataAggregator.Models.Snapshots;
 
 [JsonConverter(typeof(SnapshotTimeSeriesJsonConverter))]
 public sealed record SnapshotTimeSeries

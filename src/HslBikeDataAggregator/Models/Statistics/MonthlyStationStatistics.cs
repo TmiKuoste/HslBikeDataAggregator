@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace HslBikeDataAggregator.Models;
+using HslBikeDataAggregator.Models.Shared;
+
+namespace HslBikeDataAggregator.Models.Statistics;
 
 public sealed record MonthlyStationStatistics
 {

@@ -1,6 +1,8 @@
 using HslBikeDataAggregator.Storage;
 
 using HslBikeDataAggregator.Models;
+using HslBikeDataAggregator.Models.Snapshots;
+using HslBikeDataAggregator.Models.Statistics;
 
 namespace HslBikeDataAggregator.Services;
 

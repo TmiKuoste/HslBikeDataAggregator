@@ -5,4 +5,22 @@
   <Folder Name="/tests/">
     <Project Path="tests/HslBikeDataAggregator.Tests/HslBikeDataAggregator.Tests.csproj" />
   </Folder>
+  <Folder Name="/.azure/">
+    <File Path=".azure/plan.md" />
+  </Folder>
+  <Folder Name="/docs/adr/">
+    <File Path="docs/adr/001-cold-start-mitigation.md" />
+    <File Path="docs/adr/002-runtime-model.md" />
+    <File Path="docs/adr/003-apim-gateway.md" />
+  </Folder>
+  <Folder Name="/infra/">
+    <File Path="infra/main.bicep" />
+    <File Path="infra/dev.bicepparam" />
+    <File Path="infra/prod.bicepparam" />
+  </Folder>
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/ci.yml" />
+    <File Path=".github/workflows/deploy-dev.yml" />
+    <File Path=".github/workflows/deploy-prod.yml" />
+  </Folder>
 </Solution>

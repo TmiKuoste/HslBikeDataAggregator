@@ -1,7 +1,8 @@
 using System.Text.Json;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using HslBikeDataAggregator.Models;
+using HslBikeDataAggregator.Models.Snapshots;
+using HslBikeDataAggregator.Models.Statistics;
 
 namespace HslBikeDataAggregator.Storage;
 

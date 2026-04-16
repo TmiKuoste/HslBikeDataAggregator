@@ -7,6 +7,9 @@ using Azure.Core.Serialization;
 using HslBikeDataAggregator.Configuration;
 using HslBikeDataAggregator.Functions;
 using HslBikeDataAggregator.Models;
+using HslBikeDataAggregator.Models.Shared;
+using HslBikeDataAggregator.Models.Snapshots;
+using HslBikeDataAggregator.Models.Statistics;
 using HslBikeDataAggregator.Services;
 using HslBikeDataAggregator.Storage;
 

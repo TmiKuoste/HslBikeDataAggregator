@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace HslBikeDataAggregator.Models;
+namespace HslBikeDataAggregator.Models.Shared;
 
 public sealed record ColumnarTable
 {

@@ -1,4 +1,4 @@
-namespace HslBikeDataAggregator.Models;
+namespace HslBikeDataAggregator.Models.Snapshots;
 
 public sealed record StationCountSeries
 {

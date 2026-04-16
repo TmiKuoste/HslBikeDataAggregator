@@ -73,6 +73,7 @@ All endpoints return JSON. Requests are routed through the APIM gateway, which h
 - Run `dotnet build HslBikeDataAggregator.slnx` and the relevant tests before considering the issue complete.
 - Do not treat an issue as done until the branch is pushed, the pull request is open, and CI is passing.
 - Explicitly link pull requests to their GitHub issue using closing keywords such as `Closes #<issue>` to ensure the issue is automatically closed when the PR is merged.
+- When reorganising files in this repository, use moves/renames that preserve Git history instead of recreating files at new paths.
 
 ## Language Preferences
 
