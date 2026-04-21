@@ -39,6 +39,39 @@ var storageAccountName = take('st${toLower(replace(replace(functionAppName, '-',
 var deploymentStorageContainerName = 'deployment-packages'
 var deploymentStorageContainerUrl = 'https://${storageAccount.name}.blob.${environment().suffixes.storage}/${deploymentStorageContainerName}'
 var apimCorsAllowedOriginsXml = join(map(corsAllowedOrigins, origin => '        <origin>${origin}</origin>'), '\n')
+var apimApiPolicyTemplate = '''
+<policies>
+  <inbound>
+    <base />
+    <set-header name="x-functions-key" exists-action="override">
+      <value>{{function-host-key}}</value>
+    </set-header>
+    <cors allow-credentials="false">
+      <allowed-origins>
+__APIM_CORS_ALLOWED_ORIGINS__
+      </allowed-origins>
+      <allowed-methods>
+        <method>GET</method>
+      </allowed-methods>
+      <allowed-headers>
+        <header>*</header>
+      </allowed-headers>
+    </cors>
+    <rate-limit calls="200" renewal-period="60" />
+    <cache-lookup vary-by-developer="false" vary-by-developer-groups="false" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+    <cache-store duration="30" />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>
+'''
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: managedIdentityName
@@ -346,39 +379,7 @@ resource apimApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2024-05-01
   parent: apimApi
   properties: {
     format: 'xml'
-    value: '''
-<policies>
-  <inbound>
-    <base />
-    <set-header name="x-functions-key" exists-action="override">
-      <value>{{function-host-key}}</value>
-    </set-header>
-    <cors allow-credentials="false">
-      <allowed-origins>
-${apimCorsAllowedOriginsXml}
-      </allowed-origins>
-      <allowed-methods>
-        <method>GET</method>
-      </allowed-methods>
-      <allowed-headers>
-        <header>*</header>
-      </allowed-headers>
-    </cors>
-    <rate-limit calls="200" renewal-period="60" />
-    <cache-lookup vary-by-developer="false" vary-by-developer-groups="false" />
-  </inbound>
-  <backend>
-    <base />
-  </backend>
-  <outbound>
-    <base />
-    <cache-store duration="30" />
-  </outbound>
-  <on-error>
-    <base />
-  </on-error>
-</policies>
-'''
+    value: replace(apimApiPolicyTemplate, '__APIM_CORS_ALLOWED_ORIGINS__', apimCorsAllowedOriginsXml)
   }
   dependsOn: [
     apimFunctionKeyNamedValue

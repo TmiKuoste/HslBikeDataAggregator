@@ -136,7 +136,8 @@ public sealed class DeploymentWorkflowConfigurationTests
 
         Assert.Contains("param corsAllowedOrigins array", mainBicep, StringComparison.Ordinal);
         Assert.Contains("var apimCorsAllowedOriginsXml = join(map(corsAllowedOrigins", mainBicep, StringComparison.Ordinal);
-        Assert.Contains("${apimCorsAllowedOriginsXml}", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("var apimApiPolicyTemplate =", mainBicep, StringComparison.Ordinal);
+        Assert.Contains("value: replace(apimApiPolicyTemplate, '__APIM_CORS_ALLOWED_ORIGINS__', apimCorsAllowedOriginsXml)", mainBicep, StringComparison.Ordinal);
         Assert.DoesNotContain("allowedOrigins: corsAllowedOrigins", mainBicep, StringComparison.Ordinal);
 
         Assert.Contains("param corsAllowedOrigins", devBicepParameters, StringComparison.Ordinal);
