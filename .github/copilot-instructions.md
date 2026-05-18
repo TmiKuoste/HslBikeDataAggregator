@@ -1,6 +1,6 @@
 # HslBikeDataAggregator — Copilot Instructions
 
-> **Keep in sync with `CLAUDE.md`** at the repository root. When updating either file, apply the same change to the other.
+> **This file is the canonical source of instructions for this repository.** `CLAUDE.md` at the repository root imports this file — edit here, not in `CLAUDE.md`.
 
 ## System Overview
 
@@ -95,6 +95,20 @@ All endpoints return JSON. Requests route through the APIM gateway which handles
 
 - Use British English consistently in responses, code comments, documentation, commit and pull request text, and GitHub content.
 - Avoid non-English or stray foreign text in responses.
+
+## Corrections & Lessons Learned
+
+### Configuration format
+
+- Local `local.settings.json` uses colon notation (`OpenData:VenueFillLevelSources:0:SourceId`).
+- Azure app settings and GitHub Actions `az functionapp config appsettings set` use double-underscore notation (`OpenData__VenueFillLevelSources__0__SourceId`).
+- Both are valid for `IConfiguration` binding.
+
+### VenueFillLevelSource response shape
+
+- The jaskaretail fill level API returns `{ "result": { "fill_level": 185, ... }, "isError": false }`.
+- The field is `fill_level` inside `result` — not a flat `currentAmount` field.
+- Always verify actual API response shapes against `VenueFillLevelSource.cs` before assuming field names.
 
 ## Domain Logic Considerations
 
