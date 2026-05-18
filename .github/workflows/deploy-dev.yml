@@ -109,6 +109,23 @@ jobs:
               --name "$AZURE_FUNCTION_APP_NAME" \
               --settings HistoryProcessingCron="${{ vars.HISTORY_PROCESSING_CRON || '0 0 2 * * *' }}"
 
+      - name: Configure open data settings
+        uses: azure/cli@9eb25b8360668fb0ecbafa808d40e2197b2f5f52 # v3.0.0
+        with:
+          inlineScript: |
+            az functionapp config appsettings set \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --name "$AZURE_FUNCTION_APP_NAME" \
+              --settings \
+                OpenDataPollIntervalCron="${{ secrets.OPEN_DATA_POLL_INTERVAL_CRON || '0 */15 * * * *' }}" \
+                "OpenData__VenueFillLevelSources__0__SourceId=uimastadion" \
+                "OpenData__VenueFillLevelSources__0__DisplayName=Uimastadion" \
+                "OpenData__VenueFillLevelSources__0__Lat=60.1857" \
+                "OpenData__VenueFillLevelSources__0__Lon=24.9282" \
+                "OpenData__VenueFillLevelSources__0__AttributionUrl=https://helsinki.jaskaretail.com/current-fill-level/info/uimastadion" \
+                "OpenData__VenueFillLevelSources__0__LocationId=180" \
+                "OpenData__VenueFillLevelSources__0__LocationUrlName=uimastadion"
+
       - name: Deploy Function App package
         uses: Azure/functions-action@bc63708cc6539760eea18d8a7de4ce8ef5fdf593 # v1
         with:
