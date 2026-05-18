@@ -35,6 +35,8 @@ public sealed class GetOpenDataFunctionTests
             Lat = 60.1857,
             Lon = 24.9282,
             AttributionUrl = "https://example.com",
+            Unit = "visitors",
+            Description = "Live visitor count",
             Timestamps = [new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero)],
             Values = [45.0]
         };
@@ -55,6 +57,8 @@ public sealed class GetOpenDataFunctionTests
         var body = await reader.ReadToEndAsync(cancellationToken);
         Assert.Contains("\"sourceId\":\"uimastadion\"", body, StringComparison.Ordinal);
         Assert.Contains("\"displayName\":\"Uimastadion\"", body, StringComparison.Ordinal);
+        Assert.Contains("\"unit\":\"visitors\"", body, StringComparison.Ordinal);
+        Assert.Contains("\"description\":\"Live visitor count\"", body, StringComparison.Ordinal);
         Assert.Contains("45", body, StringComparison.Ordinal);
     }
 

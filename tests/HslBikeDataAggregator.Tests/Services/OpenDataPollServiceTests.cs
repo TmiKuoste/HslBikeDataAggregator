@@ -160,6 +160,8 @@ public sealed class OpenDataPollServiceTests
         source.SetupGet(s => s.Lat).Returns(60.19);
         source.SetupGet(s => s.Lon).Returns(24.93);
         source.SetupGet(s => s.AttributionUrl).Returns("https://new-attribution.com");
+        source.SetupGet(s => s.Unit).Returns("visitors");
+        source.SetupGet(s => s.Description).Returns("Live visitor count");
         source.Setup(s => s.FetchAsync(cancellationToken)).ReturnsAsync(50.0);
 
         var existing = OpenDataTimeSeries.CreateEmpty("uimastadion", "Old Name", 60.0, 25.0, "https://old.com");
@@ -181,6 +183,33 @@ public sealed class OpenDataPollServiceTests
         Assert.Equal(60.19, written.Lat);
         Assert.Equal(24.93, written.Lon);
         Assert.Equal("https://new-attribution.com", written.AttributionUrl);
+        Assert.Equal("visitors", written.Unit);
+        Assert.Equal("Live visitor count", written.Description);
+    }
+
+    [Fact]
+    public async Task PollAsync_LeavesUnitAndDescriptionNull_WhenSourceDoesNotProvideThem()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var timestamp = new DateTimeOffset(2026, 5, 1, 10, 15, 0, TimeSpan.Zero);
+
+        var source = CreateSource("legacy-source");
+        source.Setup(s => s.FetchAsync(cancellationToken)).ReturnsAsync(10.0);
+
+        var blobStorage = CreateEmptyBlobStorage();
+
+        OpenDataTimeSeries? written = null;
+        blobStorage
+            .Setup(s => s.WriteOpenDataTimeSeriesAsync(It.IsAny<OpenDataTimeSeries>(), cancellationToken))
+            .Callback<OpenDataTimeSeries, CancellationToken>((ts, _) => written = ts)
+            .Returns(Task.CompletedTask);
+
+        var service = CreateService([source.Object], blobStorage.Object, historyLimit: 60, timestamp);
+        await service.PollAsync(cancellationToken);
+
+        Assert.NotNull(written);
+        Assert.Null(written!.Unit);
+        Assert.Null(written.Description);
     }
 
     private static Mock<IOpenDataSource> CreateSource(string sourceId)

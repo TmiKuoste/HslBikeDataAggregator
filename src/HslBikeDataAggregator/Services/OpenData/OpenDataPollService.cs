@@ -36,7 +36,14 @@ public sealed class OpenDataPollService(
             }
 
             var existing = await blobStorage.GetOpenDataTimeSeriesAsync(source.SourceId, cancellationToken)
-                ?? OpenDataTimeSeries.CreateEmpty(source.SourceId, source.DisplayName, source.Lat, source.Lon, source.AttributionUrl);
+                ?? OpenDataTimeSeries.CreateEmpty(
+                    source.SourceId,
+                    source.DisplayName,
+                    source.Lat,
+                    source.Lon,
+                    source.AttributionUrl,
+                    source.Unit,
+                    source.Description);
 
             var updated = AppendValue(existing, timestamp, value, historyLimit, source);
             await blobStorage.WriteOpenDataTimeSeriesAsync(updated, cancellationToken);
@@ -75,6 +82,8 @@ public sealed class OpenDataPollService(
             Lat = source.Lat,
             Lon = source.Lon,
             AttributionUrl = source.AttributionUrl,
+            Unit = source.Unit,
+            Description = source.Description,
             Timestamps = timestamps,
             Values = values
         };

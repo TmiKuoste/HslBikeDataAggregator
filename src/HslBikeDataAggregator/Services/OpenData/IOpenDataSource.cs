@@ -7,6 +7,8 @@ public interface IOpenDataSource
     double Lat { get; }
     double Lon { get; }
     string AttributionUrl { get; }
+    string? Unit { get; }
+    string? Description { get; }
 
     /// Returns null when data is unavailable (e.g. out of season) — caller records -1 sentinel.
     Task<double?> FetchAsync(CancellationToken cancellationToken);

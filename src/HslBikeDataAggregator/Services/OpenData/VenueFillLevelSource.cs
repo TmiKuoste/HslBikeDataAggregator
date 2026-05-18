@@ -14,6 +14,8 @@ public sealed class VenueFillLevelSource(VenueFillLevelConfig config, HttpClient
     public double Lat => config.Lat;
     public double Lon => config.Lon;
     public string AttributionUrl => config.AttributionUrl;
+    public string? Unit => config.Unit;
+    public string? Description => config.Description;
 
     public async Task<double?> FetchAsync(CancellationToken cancellationToken)
     {

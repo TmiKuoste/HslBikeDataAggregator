@@ -19,6 +19,12 @@ public sealed record OpenDataTimeSeries
     [JsonPropertyName("attributionUrl")]
     public required string AttributionUrl { get; init; }
 
+    [JsonPropertyName("unit")]
+    public string? Unit { get; init; }
+
+    [JsonPropertyName("description")]
+    public string? Description { get; init; }
+
     [JsonPropertyName("timestamps")]
     public required IReadOnlyList<DateTimeOffset> Timestamps { get; init; }
 
@@ -26,7 +32,13 @@ public sealed record OpenDataTimeSeries
     public required IReadOnlyList<double> Values { get; init; }
 
     public static OpenDataTimeSeries CreateEmpty(
-        string sourceId, string displayName, double lat, double lon, string attributionUrl) =>
+        string sourceId,
+        string displayName,
+        double lat,
+        double lon,
+        string attributionUrl,
+        string? unit = null,
+        string? description = null) =>
         new()
         {
             SourceId = sourceId,
@@ -34,6 +46,8 @@ public sealed record OpenDataTimeSeries
             Lat = lat,
             Lon = lon,
             AttributionUrl = attributionUrl,
+            Unit = unit,
+            Description = description,
             Timestamps = [],
             Values = []
         };

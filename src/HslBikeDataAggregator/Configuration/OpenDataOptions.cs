@@ -15,4 +15,6 @@ public sealed class VenueFillLevelConfig
     public required string AttributionUrl { get; set; }
     public required string LocationId { get; set; }
     public required string LocationUrlName { get; set; }
+    public string? Unit { get; set; }
+    public string? Description { get; set; }
 }
