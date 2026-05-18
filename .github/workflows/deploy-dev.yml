@@ -120,8 +120,8 @@ jobs:
                 OpenDataPollIntervalCron="${{ secrets.OPEN_DATA_POLL_INTERVAL_CRON || '0 */15 * * * *' }}" \
                 "OpenData__VenueFillLevelSources__0__SourceId=uimastadion" \
                 "OpenData__VenueFillLevelSources__0__DisplayName=Uimastadion" \
-                "OpenData__VenueFillLevelSources__0__Lat=60.1857" \
-                "OpenData__VenueFillLevelSources__0__Lon=24.9282" \
+                "OpenData__VenueFillLevelSources__0__Lat=60.1882" \
+                "OpenData__VenueFillLevelSources__0__Lon=24.9321" \
                 "OpenData__VenueFillLevelSources__0__AttributionUrl=https://helsinki.jaskaretail.com/current-fill-level/info/uimastadion" \
                 "OpenData__VenueFillLevelSources__0__LocationId=180" \
                 "OpenData__VenueFillLevelSources__0__LocationUrlName=uimastadion"
