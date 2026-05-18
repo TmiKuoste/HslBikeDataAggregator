@@ -1,6 +1,5 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 using HslBikeDataAggregator.Configuration;
 
@@ -31,12 +30,12 @@ public sealed class VenueFillLevelSource(VenueFillLevelConfig config, HttpClient
 
         var element = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: cancellationToken);
 
-        // API may return an object or a single-element array
-        var obj = element.ValueKind == JsonValueKind.Array && element.GetArrayLength() > 0
-            ? element[0]
-            : element;
+        if (element.TryGetProperty("isError", out var isError) && isError.GetBoolean())
+            return null;
 
-        return obj.TryGetProperty("currentAmount", out var prop) && prop.TryGetInt32(out var amount)
+        return element.TryGetProperty("result", out var result)
+            && result.TryGetProperty("fill_level", out var fillLevel)
+            && fillLevel.TryGetInt32(out var amount)
             ? (double)amount
             : null;
     }
