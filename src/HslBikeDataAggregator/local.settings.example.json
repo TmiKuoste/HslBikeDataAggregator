@@ -14,6 +14,8 @@
     "OpenData:VenueFillLevelSources:0:Lon": "24.9282",
     "OpenData:VenueFillLevelSources:0:AttributionUrl": "https://helsinki.jaskaretail.com/current-fill-level/info/uimastadion",
     "OpenData:VenueFillLevelSources:0:LocationId": "180",
-    "OpenData:VenueFillLevelSources:0:LocationUrlName": "uimastadion"
+    "OpenData:VenueFillLevelSources:0:LocationUrlName": "uimastadion",
+    "OpenData:VenueFillLevelSources:0:Unit": "visitors",
+    "OpenData:VenueFillLevelSources:0:Description": "Live visitor count at Uimastadion outdoor swimming pool"
   }
 }

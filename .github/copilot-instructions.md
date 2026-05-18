@@ -65,7 +65,7 @@ All endpoints return JSON. Requests route through the APIM gateway which handles
 - `BikeStation` — id, name, lat/lon, capacity, bikesAvailable, spacesAvailable, isActive
 - `SnapshotTimeSeries` — intervalMinutes, timestamps[], rows[] (columnar: stationId + int counts)
 - `MonthlyStationStatistics` — month, demand profile, destination table
-- `OpenDataTimeSeries` — sourceId, displayName, lat, lon, attributionUrl, timestamps[], values[] (double; `-1` = unavailable)
+- `OpenDataTimeSeries` — sourceId, displayName, lat, lon, attributionUrl, optional unit, optional description, timestamps[], values[] (double; `-1` = unavailable)
 - `IOpenDataSource` — interface for pluggable open data source implementations; `FetchAsync` returns `double?` (`null` = out of season/unavailable)
 
 ## Conventions

@@ -33,9 +33,9 @@ A single `PollOpenDataFunction` fans out over `IReadOnlyList<IOpenDataSource>`. 
 
 ### 3. Metadata embedded in each blob write
 
-`OpenDataTimeSeries` carries `displayName`, `lat`, `lon`, and `attributionUrl` alongside the time series data. These fields are refreshed from the source configuration on every poll write.
+`OpenDataTimeSeries` carries `displayName`, `lat`, `lon`, `attributionUrl`, and optional `unit` / `description` alongside the time series data. These fields are refreshed from the source configuration on every poll write.
 
-**Rationale:** `GetOpenDataFunction` reads blobs in parallel without needing access to the source configuration at read time, keeping the HTTP path simple. Config updates (e.g. a renamed display name) propagate automatically on the next successful poll.
+**Rationale:** `GetOpenDataFunction` reads blobs in parallel without needing access to the source configuration at read time, keeping the HTTP path simple. Config updates (e.g. a renamed display name, a new unit label) propagate automatically on the next successful poll. The optional `unit` and `description` let the frontend render heterogeneous source types (visitor counts, temperatures, percentages) through a single generic UI without per-source code.
 
 ### 4. `IReadOnlyList<IOpenDataSource>` registered via a factory singleton
 

@@ -158,6 +158,8 @@ The time series uses a columnar layout to minimise payload size. Each station ro
 
 Each element in the array is a rolling time series for one configured source. A value of `-1` indicates the source was unavailable (e.g. out of season or a transient fetch failure).
 
+`unit` and `description` are optional and let the frontend render the value generically across heterogeneous source types (visitor counts, temperatures, percentages, etc.) without per-source code. Both are refreshed from configuration on every successful poll.
+
 ```json
 [
   {
@@ -166,6 +168,8 @@ Each element in the array is a rolling time series for one configured source. A 
     "lat": 60.1857,
     "lon": 24.9282,
     "attributionUrl": "https://helsinki.jaskaretail.com/current-fill-level/info/uimastadion",
+    "unit": "visitors",
+    "description": "Live visitor count at Uimastadion outdoor swimming pool",
     "timestamps": ["2026-05-18T10:00:00Z", "2026-05-18T10:15:00Z"],
     "values": [185, 192]
   }
@@ -244,7 +248,7 @@ Expected values:
 | `OpenDataPollIntervalCron` | NCRONTAB expression for `PollOpenData` | `0 */15 * * * *` |
 | `OpenData:HistoryLimit` | Maximum number of values retained per open data source | `60` |
 | `OpenData:VenueFillLevelSources:0:SourceId` | Source ID for the first venue fill level source | `uimastadion` |
-| `OpenData:VenueFillLevelSources:0:*` | Additional fields per source: `DisplayName`, `Lat`, `Lon`, `AttributionUrl`, `LocationId`, `LocationUrlName` | — |
+| `OpenData:VenueFillLevelSources:0:*` | Additional fields per source: `DisplayName`, `Lat`, `Lon`, `AttributionUrl`, `LocationId`, `LocationUrlName`, optional `Unit`, optional `Description` | — |
 
 In Azure, the storage connection uses managed identity (`AzureWebJobsStorage__accountName` + `AzureWebJobsStorage__clientId`) rather than a connection string.
 
