@@ -2,7 +2,7 @@
 
 C# Azure Functions backend for Helsinki city bike data aggregation.
 
-This service is the **only component** that holds the HSL Digitransit API key. It polls the Digitransit GraphQL API for live station availability, downloads open trip-history CSVs for monthly demand statistics, stores all aggregated data in Azure Blob Storage, and serves read-optimised JSON endpoints consumed by the [`HslBikeApp`](https://github.com/Kuoste/HslBikeApp) Blazor frontend.
+This service is the **only component** that holds the HSL Digitransit API key. It polls the Digitransit GraphQL API for live station availability, downloads open trip-history CSVs for monthly demand statistics, stores all aggregated data in Azure Blob Storage, and serves read-optimised JSON endpoints consumed by the [`HslBikeApp`](https://github.com/TmiKuoste/HslBikeApp) Blazor frontend.
 
 ## Architecture
 
@@ -16,7 +16,7 @@ This service is the **only component** that holds the HSL Digitransit API key. I
 | Observability | Application Insights backed by Log Analytics workspace |
 | Auth (Azure) | User-assigned managed identity — no connection strings in production |
 | Auth (GitHub) | OpenID Connect federation — no long-lived secrets |
-| Frontend | [`HslBikeApp`](https://github.com/Kuoste/HslBikeApp) (Blazor WebAssembly, GitHub Pages) |
+| Frontend | [`HslBikeApp`](https://github.com/TmiKuoste/HslBikeApp) (Blazor WebAssembly, GitHub Pages) |
 
 ### Data flow
 
@@ -51,12 +51,27 @@ The backend has two **independent** data pipelines that share no data with each 
   │          └───── timer ────►  ProcessStationHistory             │
   │                                 │  aggregates per-station      │
   │                                 │  demand profiles and         │
-  │                                 │  destination tables           │
+  │                                 │  destination tables          │
   │                                 ▼                              │
   │                          monthly-stats/{id}.json (Blob Storage)│
   │                                 │                              │
   │                                 ▼                              │
   │                          GetStationStatistics (HTTP)           │
+  └─────────────────────────────────────────────────────────────────┘
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  PIPELINE 3 — External open data (venue fill levels, etc.)     │
+  │                                                                │
+  │  External APIs ◄── venue fill levels, future sources           │
+  │          │                                                     │
+  │          └───── timer ────►  PollOpenData                      │
+  │                                 │  per IOpenDataSource;        │
+  │                                 │  -1 sentinel on failure      │
+  │                                 ▼                              │
+  │                    open-data/{sourceId}/recent.json (Blob)     │
+  │                                 │                              │
+  │                                 ▼                              │
+  │                          GetOpenData (HTTP)                    │
   └─────────────────────────────────────────────────────────────────┘
 
                      All HTTP endpoints
@@ -82,9 +97,11 @@ Timer-triggered functions write precomputed JSON blobs. `GetSnapshots` and `GetS
 |---|---|---|---|
 | `PollStations` | Timer (`%PollIntervalCron%`, default every 15 min) | — | Poll Digitransit GraphQL API and append a snapshot to the rolling time series blob |
 | `ProcessStationHistory` | Timer (`%HistoryProcessingCron%`, default 02:00 UTC daily) | — | Discover the newest available HSL open-data trip-history CSV, aggregate per-station monthly statistics, and write one blob per station |
+| `PollOpenData` | Timer (`%OpenDataPollIntervalCron%`, default every 15 min) | — | Poll all configured `IOpenDataSource` implementations and append a value to each source's rolling time series blob |
 | `GetStations` | HTTP GET | `/api/stations` | Return live station availability (via in-memory cache, falls back to Digitransit) |
 | `GetSnapshots` | HTTP GET | `/api/snapshots` | Return the compact rolling snapshot time series for trend arrows |
 | `GetStationStatistics` | HTTP GET | `/api/stations/{stationId}/statistics` | Return monthly demand profile and top destinations for a station |
+| `GetOpenData` | HTTP GET | `/api/open-data` | Return rolling time series for all configured open data sources |
 
 All HTTP triggers use `AuthorizationLevel.Function`. Azure API Management injects the function host key so the frontend never needs to know it. Direct calls without the key receive `401 Unauthorized`. See [ADR-003](docs/adr/003-apim-gateway.md).
 
@@ -94,11 +111,12 @@ All HTTP triggers use `AuthorizationLevel.Function`. Azure API Management inject
 |---|---|---|
 | `bike-data/snapshots/recent.json` | Rolling snapshot time series (up to `SnapshotHistoryLimit` entries) | `PollStations` |
 | `bike-data/monthly-stats/{stationId}.json` | Monthly demand buckets and destination table for one station | `ProcessStationHistory` |
+| `open-data/{sourceId}/recent.json` | Rolling time series for one open data source (up to `OpenData:HistoryLimit` entries); `-1` = unavailable | `PollOpenData` |
 
 ### APIM gateway policies
 
 - **Rate limiting**: 200 requests/minute globally (Consumption tier does not support per-IP keyed limits).
-- **Response caching**: 30 s for `/stations` and `/snapshots`; 3,600 s for `/stations/{id}/statistics`.
+- **Response caching**: 30 s for `/stations` and `/snapshots`; 120 s for `/open-data`; 3,600 s for `/stations/{id}/statistics`.
 - **Function key injection**: host key stored as a secret Named Value and set via `x-functions-key` header.
 - **CORS**: allows the configured frontend origins.
 
@@ -136,6 +154,24 @@ The time series uses a columnar layout to minimise payload size. Each station ro
 }
 ```
 
+### `GET /api/open-data` → `OpenDataTimeSeries[]`
+
+Each element in the array is a rolling time series for one configured source. A value of `-1` indicates the source was unavailable (e.g. out of season or a transient fetch failure).
+
+```json
+[
+  {
+    "sourceId": "uimastadion",
+    "displayName": "Uimastadion",
+    "lat": 60.1857,
+    "lon": 24.9282,
+    "attributionUrl": "https://helsinki.jaskaretail.com/current-fill-level/info/uimastadion",
+    "timestamps": ["2026-05-18T10:00:00Z", "2026-05-18T10:15:00Z"],
+    "values": [185, 192]
+  }
+]
+```
+
 ### `GET /api/stations/{stationId}/statistics` → `MonthlyStationStatistics`
 
 Demand arrays contain 24 integers, one per hour of the day. The destinations table uses a columnar layout.
@@ -165,7 +201,7 @@ Demand arrays contain 24 integers, one per hour of the day. The destinations tab
 ```
 HslBikeDataAggregator.slnx
 ├── src/HslBikeDataAggregator/
-│   ├── Configuration/       Options classes (PollStationsOptions, HistoryProcessingOptions)
+│   ├── Configuration/       Options classes (PollStationsOptions, HistoryProcessingOptions, OpenDataOptions)
 │   ├── Functions/            HTTP and timer Azure Functions
 │   ├── Models/               Shared API/storage DTOs (records)
 │   ├── Services/             Business logic (polling, history processing, caching)
@@ -205,6 +241,10 @@ Expected values:
 | `PollIntervalCron` | NCRONTAB expression for `PollStations` | `0 */15 * * * *` |
 | `SnapshotHistoryLimit` | Maximum number of snapshots retained in the time series blob | `60` |
 | `HistoryProcessingCron` | NCRONTAB expression for `ProcessStationHistory` | `0 0 2 * * *` |
+| `OpenDataPollIntervalCron` | NCRONTAB expression for `PollOpenData` | `0 */15 * * * *` |
+| `OpenData:HistoryLimit` | Maximum number of values retained per open data source | `60` |
+| `OpenData:VenueFillLevelSources:0:SourceId` | Source ID for the first venue fill level source | `uimastadion` |
+| `OpenData:VenueFillLevelSources:0:*` | Additional fields per source: `DisplayName`, `Lat`, `Lon`, `AttributionUrl`, `LocationId`, `LocationUrlName` | — |
 
 In Azure, the storage connection uses managed identity (`AzureWebJobsStorage__accountName` + `AzureWebJobsStorage__clientId`) rather than a connection string.
 
@@ -291,6 +331,7 @@ Create two GitHub environments: **dev** and **prod**.
 | `AZURE_TENANT_ID` | Entra tenant ID |
 | `AZURE_SUBSCRIPTION_ID` | Azure subscription ID |
 | `DIGITRANSIT_SUBSCRIPTION_KEY` | HSL Digitransit API key |
+| `OPEN_DATA_POLL_INTERVAL_CRON` | (Optional) Override open data poll schedule |
 
 ### Azure authentication
 
@@ -321,6 +362,7 @@ Each deploy workflow: restores → builds → tests → publishes → signs in t
 | [001](docs/adr/001-cold-start-mitigation.md) | Cold start mitigation via write/read separation |
 | [002](docs/adr/002-runtime-model.md) | Use Azure Functions isolated worker model |
 | [003](docs/adr/003-apim-gateway.md) | Add Azure API Management gateway in front of HTTP endpoints |
+| [004](docs/adr/004-open-data-polling-framework.md) | Generic open data polling framework |
 
 ## Issue delivery workflow
 
