@@ -3,12 +3,14 @@ using Azure.Storage.Blobs;
 
 using HslBikeDataAggregator.Configuration;
 using HslBikeDataAggregator.Services;
+using HslBikeDataAggregator.Services.OpenData;
 using HslBikeDataAggregator.Storage;
 
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -35,9 +37,21 @@ builder.Services
             options.RollingWindowMonthCount);
     });
 
+builder.Services
+    .AddOptions<OpenDataOptions>()
+    .Configure<IConfiguration>((options, configuration) =>
+    {
+        options.HistoryLimit = configuration.GetValue<int?>("OpenData:HistoryLimit") ?? 60;
+        options.VenueFillLevelSources = configuration
+            .GetSection("OpenData:VenueFillLevelSources")
+            .Get<List<VenueFillLevelConfig>>() ?? [];
+    });
+
 builder.Services.AddHttpClient<DigitransitStationClient>()
     .AddStandardResilienceHandler();
 builder.Services.AddHttpClient<ProcessStationHistoryService>();
+builder.Services.AddHttpClient("VenueFillLevel")
+    .AddStandardResilienceHandler();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<LiveStationCacheService>();
 builder.Services.AddSingleton(provider =>
@@ -71,5 +85,15 @@ builder.Services.AddSingleton(provider =>
 builder.Services.AddSingleton<IBikeDataBlobStorage, BikeDataBlobStorage>();
 builder.Services.AddSingleton<IPollStationsService, PollStationsService>();
 builder.Services.AddSingleton<AggregatedBikeDataService>();
+builder.Services.AddSingleton<IReadOnlyList<IOpenDataSource>>(provider =>
+{
+    var opts = provider.GetRequiredService<IOptions<OpenDataOptions>>().Value;
+    var factory = provider.GetRequiredService<IHttpClientFactory>();
+    return opts.VenueFillLevelSources
+        .Select(config => (IOpenDataSource)new VenueFillLevelSource(config, factory.CreateClient("VenueFillLevel")))
+        .ToList();
+});
+builder.Services.AddSingleton<IOpenDataBlobStorage, OpenDataBlobStorage>();
+builder.Services.AddSingleton<OpenDataPollService>();
 
 builder.Build().Run();

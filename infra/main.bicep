@@ -31,6 +31,9 @@ param snapshotHistoryLimit int = 60
 @description('Cron expression used by the ProcessStationHistory timer trigger.')
 param historyProcessingCron string = '0 0 2 * * *'
 
+@description('Cron expression used by the PollOpenData timer trigger.')
+param openDataPollIntervalCron string = '0 */15 * * * *'
+
 var managedIdentityName = '${functionAppName}-id'
 var appServicePlanName = '${functionAppName}-plan'
 var applicationInsightsName = '${functionAppName}-appi'
@@ -240,6 +243,10 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
           name: 'HistoryProcessingCron'
           value: historyProcessingCron
         }
+        {
+          name: 'OpenDataPollIntervalCron'
+          value: openDataPollIntervalCron
+        }
       ]
       ftpsState: 'Disabled'
       http20Enabled: true
@@ -415,6 +422,42 @@ resource apimStationStatisticsCachePolicyFragment 'Microsoft.ApiManagement/servi
 
 
 // API operations — one per Function App HTTP endpoint.
+resource apimGetOpenData 'Microsoft.ApiManagement/service/apis/operations@2024-05-01' = {
+  name: 'get-open-data'
+  parent: apimApi
+  properties: {
+    displayName: 'Get open data'
+    method: 'GET'
+    urlTemplate: '/open-data'
+  }
+}
+
+resource apimOpenDataCachePolicy 'Microsoft.ApiManagement/service/apis/operations/policies@2024-05-01' = {
+  name: 'policy'
+  parent: apimGetOpenData
+  properties: {
+    format: 'xml'
+    value: '''
+<policies>
+  <inbound>
+    <base />
+    <cache-lookup vary-by-developer="false" vary-by-developer-groups="false" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+    <cache-store duration="120" />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>
+'''
+  }
+}
+
 resource apimGetStations 'Microsoft.ApiManagement/service/apis/operations@2024-05-01' = {
   name: 'get-stations'
   parent: apimApi

@@ -5,11 +5,14 @@ public static class BikeDataBlobNames
     public const string ContainerName = "bike-data";
     public const string RecentSnapshots = "snapshots/recent.json";
     public const string MonthlyStatisticsPrefix = "monthly-stats/";
+    public const string OpenDataPrefix = "open-data/";
 
     /// <summary>
     /// Returns the blob name for a station's monthly statistics profile.
     /// </summary>
     public static string MonthlyStatistics(string stationId) => $"{MonthlyStatisticsPrefix}{SanitiseStationId(stationId)}.json";
+
+    public static string OpenDataTimeSeries(string sourceId) => $"{OpenDataPrefix}{SanitiseStationId(sourceId)}/recent.json";
 
     /// <summary>
     /// Validates that a station ID does not contain path-traversal or control characters.

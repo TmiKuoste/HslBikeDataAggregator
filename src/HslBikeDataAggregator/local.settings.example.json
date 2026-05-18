@@ -5,6 +5,15 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "DigitransitSubscriptionKey": "",
     "PollIntervalCron": "0 */15 * * * *",
-    "SnapshotHistoryLimit": "60"
+    "SnapshotHistoryLimit": "60",
+    "OpenDataPollIntervalCron": "0 */15 * * * *",
+    "OpenData:HistoryLimit": "60",
+    "OpenData:VenueFillLevelSources:0:SourceId": "uimastadion",
+    "OpenData:VenueFillLevelSources:0:DisplayName": "Uimastadion",
+    "OpenData:VenueFillLevelSources:0:Lat": "60.1857",
+    "OpenData:VenueFillLevelSources:0:Lon": "24.9282",
+    "OpenData:VenueFillLevelSources:0:AttributionUrl": "https://helsinki.jaskaretail.com/current-fill-level/info/uimastadion",
+    "OpenData:VenueFillLevelSources:0:LocationId": "180",
+    "OpenData:VenueFillLevelSources:0:LocationUrlName": "uimastadion"
   }
 }
